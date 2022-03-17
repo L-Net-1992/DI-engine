@@ -178,8 +178,8 @@
 <span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Union</span><span class="p">,</span> <span class="n">Set</span>
 <span class="kn">from</span> <span class="nn">threading</span> <span class="kn">import</span> <span class="n">Thread</span>
 <span class="kn">from</span> <span class="nn">pynng.nng</span> <span class="kn">import</span> <span class="n">Bus0</span><span class="p">,</span> <span class="n">Socket</span>
+<span class="kn">from</span> <span class="nn">ding.framework.event_loop</span> <span class="kn">import</span> <span class="n">EventLoop</span>
 <span class="kn">from</span> <span class="nn">ding.utils.design_helper</span> <span class="kn">import</span> <span class="n">SingletonMetaclass</span>
-<span class="kn">from</span> <span class="nn">rich</span> <span class="kn">import</span> <span class="nb">print</span>
 
 <span class="c1"># Avoid ipc address conflict, random should always use random seed</span>
 <span class="n">random</span> <span class="o">=</span> <span class="n">random</span><span class="o">.</span><span class="n">Random</span><span class="p">()</span>
@@ -190,13 +190,13 @@
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_listener</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_sock</span><span class="p">:</span> <span class="n">Socket</span> <span class="o">=</span> <span class="kc">None</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_rpc</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_bind_addr</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">is_active</span> <span class="o">=</span> <span class="kc">False</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">attach_to</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">finished</span> <span class="o">=</span> <span class="kc">False</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">node_id</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">labels</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_event_loop</span> <span class="o">=</span> <span class="n">EventLoop</span><span class="p">(</span><span class="s2">&quot;parallel_</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">id</span><span class="p">(</span><span class="bp">self</span><span class="p">)))</span>
 
     <span class="k">def</span> <span class="nf">run</span><span class="p">(</span>
             <span class="bp">self</span><span class="p">,</span>
@@ -225,10 +225,10 @@
             <span class="n">attach_to</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
             <span class="n">protocol</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;ipc&quot;</span><span class="p">,</span>
             <span class="n">address</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-            <span class="n">ports</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="n">ports</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span> <span class="nb">int</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
             <span class="n">topology</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;mesh&quot;</span><span class="p">,</span>
             <span class="n">labels</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Set</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-            <span class="n">node_ids</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="n">node_ids</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span> <span class="nb">int</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Callable</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
@@ -280,7 +280,7 @@
                     <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Unknown topology: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">topology</span><span class="p">))</span>
 
             <span class="n">params_group</span> <span class="o">=</span> <span class="p">[]</span>
-            <span class="n">candidate_node_ids</span> <span class="o">=</span> <span class="n">node_ids</span> <span class="ow">or</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_parallel_workers</span><span class="p">)</span>
+            <span class="n">candidate_node_ids</span> <span class="o">=</span> <span class="n">Parallel</span><span class="o">.</span><span class="n">padding_param</span><span class="p">(</span><span class="n">node_ids</span><span class="p">,</span> <span class="n">n_parallel_workers</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
             <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">candidate_node_ids</span><span class="p">)</span> <span class="o">==</span> <span class="n">n_parallel_workers</span><span class="p">,</span> \
                 <span class="s2">&quot;The number of workers must be the same as the number of node_ids, </span><span class="se">\</span>
 <span class="s2">now there are </span><span class="si">{}</span><span class="s2"> workers and </span><span class="si">{}</span><span class="s2"> nodes&quot;</span>\
@@ -321,6 +321,7 @@
         <span class="k">with</span> <span class="n">Parallel</span><span class="p">()</span> <span class="k">as</span> <span class="n">router</span><span class="p">:</span>
             <span class="n">router</span><span class="o">.</span><span class="n">is_active</span> <span class="o">=</span> <span class="kc">True</span>
             <span class="n">router</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="o">*</span><span class="n">runner_args</span><span class="p">,</span> <span class="o">**</span><span class="n">runner_kwargs</span><span class="p">)</span>
+            <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mf">0.3</span><span class="p">)</span>  <span class="c1"># Waiting for network pairing</span>
             <span class="n">main_process</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 
     <span class="nd">@staticmethod</span>
@@ -328,7 +329,7 @@
             <span class="n">n_workers</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
             <span class="n">protocol</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;ipc&quot;</span><span class="p">,</span>
             <span class="n">address</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-            <span class="n">ports</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="n">ports</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span> <span class="nb">int</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">protocol</span> <span class="o">==</span> <span class="s2">&quot;ipc&quot;</span><span class="p">:</span>
             <span class="n">node_name</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">random</span><span class="o">.</span><span class="n">choices</span><span class="p">(</span><span class="s2">&quot;abcdefghijklmnopqrstuvwxyz0123456789&quot;</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="mi">4</span><span class="p">))</span>
@@ -336,15 +337,33 @@
             <span class="n">nodes</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;ipc://</span><span class="si">{}</span><span class="s2">/ditask_</span><span class="si">{}</span><span class="s2">_</span><span class="si">{}</span><span class="s2">.ipc&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">tmp_dir</span><span class="p">,</span> <span class="n">node_name</span><span class="p">,</span> <span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_workers</span><span class="p">)]</span>
         <span class="k">elif</span> <span class="n">protocol</span> <span class="o">==</span> <span class="s2">&quot;tcp&quot;</span><span class="p">:</span>
             <span class="n">address</span> <span class="o">=</span> <span class="n">address</span> <span class="ow">or</span> <span class="n">Parallel</span><span class="o">.</span><span class="n">get_ip</span><span class="p">()</span>
-            <span class="n">ports</span> <span class="o">=</span> <span class="n">ports</span> <span class="ow">or</span> <span class="nb">range</span><span class="p">(</span><span class="mi">50515</span><span class="p">,</span> <span class="mi">50515</span> <span class="o">+</span> <span class="n">n_workers</span><span class="p">)</span>
-            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">ports</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
-                <span class="n">ports</span> <span class="o">=</span> <span class="nb">range</span><span class="p">(</span><span class="n">ports</span><span class="p">,</span> <span class="n">ports</span> <span class="o">+</span> <span class="n">n_workers</span><span class="p">)</span>
+            <span class="n">ports</span> <span class="o">=</span> <span class="n">Parallel</span><span class="o">.</span><span class="n">padding_param</span><span class="p">(</span><span class="n">ports</span><span class="p">,</span> <span class="n">n_workers</span><span class="p">,</span> <span class="mi">50515</span><span class="p">)</span>
             <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">ports</span><span class="p">)</span> <span class="o">==</span> <span class="n">n_workers</span><span class="p">,</span> <span class="s2">&quot;The number of ports must be the same as the number of workers, </span><span class="se">\</span>
 <span class="s2">now there are </span><span class="si">{}</span><span class="s2"> ports and </span><span class="si">{}</span><span class="s2"> workers&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">ports</span><span class="p">),</span> <span class="n">n_workers</span><span class="p">)</span>
             <span class="n">nodes</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;tcp://</span><span class="si">{}</span><span class="s2">:</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">address</span><span class="p">,</span> <span class="n">port</span><span class="p">)</span> <span class="k">for</span> <span class="n">port</span> <span class="ow">in</span> <span class="n">ports</span><span class="p">]</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;Unknown protocol </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">protocol</span><span class="p">))</span>
         <span class="k">return</span> <span class="n">nodes</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">padding_param</span><span class="p">(</span><span class="n">int_or_list</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span> <span class="nb">int</span><span class="p">]],</span> <span class="n">n_max</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">start_value</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Padding int or list param to the length of n_max.</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            - int_or_list (:obj:`Optional[Union[List[int], int]]`): Int or list typed value.</span>
+<span class="sd">            - n_max (:obj:`int`): Max length.</span>
+<span class="sd">            - start_value (:obj:`int`): Start from value.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">param</span> <span class="o">=</span> <span class="n">int_or_list</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">param</span><span class="p">,</span> <span class="n">List</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">param</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">param</span> <span class="o">=</span> <span class="n">param</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>  <span class="c1"># List with only 1 element is equal to int</span>
+
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">param</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
+            <span class="n">param</span> <span class="o">=</span> <span class="nb">range</span><span class="p">(</span><span class="n">param</span><span class="p">,</span> <span class="n">param</span> <span class="o">+</span> <span class="n">n_max</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">param</span> <span class="o">=</span> <span class="n">param</span> <span class="ow">or</span> <span class="nb">range</span><span class="p">(</span><span class="n">start_value</span><span class="p">,</span> <span class="n">start_value</span> <span class="o">+</span> <span class="n">n_max</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">param</span>
 
     <span class="k">def</span> <span class="nf">listen</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">listen_to</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">attach_to</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
         <span class="n">attach_to</span> <span class="o">=</span> <span class="n">attach_to</span> <span class="ow">or</span> <span class="p">[]</span>
@@ -359,8 +378,8 @@
 
             <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
                 <span class="k">try</span><span class="p">:</span>
-                    <span class="n">msg</span> <span class="o">=</span> <span class="n">sock</span><span class="o">.</span><span class="n">recv_msg</span><span class="p">()</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">recv_rpc</span><span class="p">(</span><span class="n">msg</span><span class="o">.</span><span class="n">bytes</span><span class="p">)</span>
+                    <span class="n">msg</span> <span class="o">=</span> <span class="n">sock</span><span class="o">.</span><span class="n">recv</span><span class="p">()</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_handle_message</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
                 <span class="k">except</span> <span class="n">pynng</span><span class="o">.</span><span class="n">Timeout</span><span class="p">:</span>
                     <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Timeout on node </span><span class="si">{}</span><span class="s2"> when waiting for message from bus&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_bind_addr</span><span class="p">))</span>
                 <span class="k">except</span> <span class="n">pynng</span><span class="o">.</span><span class="n">Closed</span><span class="p">:</span>
@@ -371,53 +390,75 @@
                     <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Meet exception when listening for new messages&quot;</span><span class="p">,</span> <span class="n">e</span><span class="p">)</span>
                     <span class="k">break</span>
 
-<div class="viewcode-block" id="Parallel.register_rpc"><a class="viewcode-back" href="../../../api_doc/framework/parallel.html#ding.framework.parallel.Parallel.register_rpc">[docs]</a>    <span class="k">def</span> <span class="nf">register_rpc</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fn_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">fn</span><span class="p">:</span> <span class="n">Callable</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">on</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">fn</span><span class="p">:</span> <span class="n">Callable</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
-<span class="sd">            Register an rpc on parallel instance, this function will be executed \</span>
-<span class="sd">            when a remote process call this function via network.</span>
+<span class="sd">            Register an remote event on parallel instance, this function will be executed \</span>
+<span class="sd">            when a remote process emit this event via network.</span>
 <span class="sd">        Arguments:</span>
-<span class="sd">            - fn_name (:obj:`str`): Function name.</span>
+<span class="sd">            - event (:obj:`str`): Event name.</span>
 <span class="sd">            - fn (:obj:`Callable`): Function body.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_rpc</span><span class="p">[</span><span class="n">fn_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">fn</span></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_event_loop</span><span class="o">.</span><span class="n">on</span><span class="p">(</span><span class="n">event</span><span class="p">,</span> <span class="n">fn</span><span class="p">)</span>
 
-<div class="viewcode-block" id="Parallel.unregister_rpc"><a class="viewcode-back" href="../../../api_doc/framework/parallel.html#ding.framework.parallel.Parallel.unregister_rpc">[docs]</a>    <span class="k">def</span> <span class="nf">unregister_rpc</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fn_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">once</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">fn</span><span class="p">:</span> <span class="n">Callable</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
-<span class="sd">            Unregister an rpc function.</span>
+<span class="sd">            Register an remote event which will only call once on parallel instance,</span>
+<span class="sd">            this function will be executed when a remote process emit this event via network.</span>
 <span class="sd">        Arguments:</span>
-<span class="sd">            - fn_name (:obj:`str`): Function name.</span>
+<span class="sd">            - event (:obj:`str`): Event name.</span>
+<span class="sd">            - fn (:obj:`Callable`): Function body.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="n">fn_name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_rpc</span><span class="p">:</span>
-            <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">_rpc</span><span class="p">[</span><span class="n">fn_name</span><span class="p">]</span></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_event_loop</span><span class="o">.</span><span class="n">once</span><span class="p">(</span><span class="n">event</span><span class="p">,</span> <span class="n">fn</span><span class="p">)</span>
 
-<div class="viewcode-block" id="Parallel.send_rpc"><a class="viewcode-back" href="../../../api_doc/framework/parallel.html#ding.framework.parallel.Parallel.send_rpc">[docs]</a>    <span class="k">def</span> <span class="nf">send_rpc</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">func_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">off</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
-<span class="sd">            Send an rpc via network to subscribed processes.</span>
+<span class="sd">            Unregister an event.</span>
 <span class="sd">        Arguments:</span>
-<span class="sd">            - fn_name (:obj:`str`): Function name.</span>
+<span class="sd">            - event (:obj:`str`): Event name.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_event_loop</span><span class="o">.</span><span class="n">off</span><span class="p">(</span><span class="n">event</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">emit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Send an remote event via network to subscribed processes.</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            - event (:obj:`str`): Event name.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_active</span><span class="p">:</span>
-            <span class="n">payload</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;f&quot;</span><span class="p">:</span> <span class="n">func_name</span><span class="p">,</span> <span class="s2">&quot;a&quot;</span><span class="p">:</span> <span class="n">args</span><span class="p">,</span> <span class="s2">&quot;k&quot;</span><span class="p">:</span> <span class="n">kwargs</span><span class="p">}</span>
+            <span class="n">topic</span> <span class="o">=</span> <span class="n">event</span> <span class="o">+</span> <span class="s2">&quot;::&quot;</span>
+            <span class="n">payload</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;a&quot;</span><span class="p">:</span> <span class="n">args</span><span class="p">,</span> <span class="s2">&quot;k&quot;</span><span class="p">:</span> <span class="n">kwargs</span><span class="p">}</span>
             <span class="k">try</span><span class="p">:</span>
-                <span class="n">payload_str</span> <span class="o">=</span> <span class="n">pickle</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">payload</span><span class="p">,</span> <span class="n">protocol</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
+                <span class="n">data</span> <span class="o">=</span> <span class="n">pickle</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">payload</span><span class="p">,</span> <span class="n">protocol</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
             <span class="k">except</span> <span class="ne">AttributeError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-                <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Arguments are not pickable! Function: </span><span class="si">{}</span><span class="s2">, Args: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">func_name</span><span class="p">,</span> <span class="n">args</span><span class="p">))</span>
+                <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Arguments are not pickable! Event: </span><span class="si">{}</span><span class="s2">, Args: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">event</span><span class="p">,</span> <span class="n">args</span><span class="p">))</span>
                 <span class="k">raise</span> <span class="n">e</span>
-            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sock</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sock</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="n">payload_str</span><span class="p">)</span></div>
+            <span class="n">data</span> <span class="o">=</span> <span class="n">topic</span><span class="o">.</span><span class="n">encode</span><span class="p">()</span> <span class="o">+</span> <span class="n">data</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sock</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sock</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">recv_rpc</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">msg</span><span class="p">:</span> <span class="nb">bytes</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">_handle_message</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">msg</span><span class="p">:</span> <span class="nb">bytes</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Recv and parse payload from other processes, and call local functions.</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            - msg (:obj:`bytes`): Recevied message.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Use topic at the beginning of the message, so we don&#39;t need to call pickle.loads</span>
+        <span class="c1"># when the current process is not subscribed to the topic.</span>
+        <span class="n">topic</span><span class="p">,</span> <span class="n">payload</span> <span class="o">=</span> <span class="n">msg</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="sa">b</span><span class="s2">&quot;::&quot;</span><span class="p">,</span> <span class="n">maxsplit</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">event</span> <span class="o">=</span> <span class="n">topic</span><span class="o">.</span><span class="n">decode</span><span class="p">()</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_event_loop</span><span class="o">.</span><span class="n">listened</span><span class="p">(</span><span class="n">event</span><span class="p">):</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Event </span><span class="si">{}</span><span class="s2"> was not listened in parallel </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">event</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">node_id</span><span class="p">))</span>
+            <span class="k">return</span>
         <span class="k">try</span><span class="p">:</span>
-            <span class="n">payload</span> <span class="o">=</span> <span class="n">pickle</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+            <span class="n">payload</span> <span class="o">=</span> <span class="n">pickle</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">payload</span><span class="p">)</span>
         <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-            <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Error when unpacking message on node </span><span class="si">{}</span><span class="s2">, msg: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_bind_addr</span><span class="p">,</span> <span class="n">e</span><span class="p">))</span>
-        <span class="k">if</span> <span class="n">payload</span><span class="p">[</span><span class="s2">&quot;f&quot;</span><span class="p">]</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_rpc</span><span class="p">:</span>
-            <span class="n">fn</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_rpc</span><span class="p">[</span><span class="n">payload</span><span class="p">[</span><span class="s2">&quot;f&quot;</span><span class="p">]]</span>
-            <span class="n">fn</span><span class="p">(</span><span class="o">*</span><span class="n">payload</span><span class="p">[</span><span class="s2">&quot;a&quot;</span><span class="p">],</span> <span class="o">**</span><span class="n">payload</span><span class="p">[</span><span class="s2">&quot;k&quot;</span><span class="p">])</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;There was no function named </span><span class="si">{}</span><span class="s2"> in rpc table&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">payload</span><span class="p">[</span><span class="s2">&quot;f&quot;</span><span class="p">]))</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Error when unpacking message on node </span><span class="si">{}</span><span class="s2">, msg: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_bind_addr</span><span class="p">,</span> <span class="n">e</span><span class="p">))</span>
+            <span class="k">return</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_event_loop</span><span class="o">.</span><span class="n">emit</span><span class="p">(</span><span class="n">event</span><span class="p">,</span> <span class="o">*</span><span class="n">payload</span><span class="p">[</span><span class="s2">&quot;a&quot;</span><span class="p">],</span> <span class="o">**</span><span class="n">payload</span><span class="p">[</span><span class="s2">&quot;k&quot;</span><span class="p">])</span>
 
     <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">get_ip</span><span class="p">():</span>
@@ -441,12 +482,13 @@
     <span class="k">def</span> <span class="nf">stop</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Stopping parallel worker on address: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_bind_addr</span><span class="p">))</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">finished</span> <span class="o">=</span> <span class="kc">True</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_rpc</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">is_active</span> <span class="o">=</span> <span class="kc">False</span>
         <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mf">0.03</span><span class="p">)</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sock</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_sock</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_listener</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_listener</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">timeout</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span></div>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_listener</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">timeout</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_event_loop</span><span class="o">.</span><span class="n">stop</span><span class="p">()</span></div>
 </pre></div>
 
            </div>

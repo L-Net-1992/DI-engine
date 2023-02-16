@@ -35,7 +35,7 @@
   <link rel="stylesheet" href="../../../../_static/css/style.css" type="text/css" />
   <link rel="index" title="Index" href="../../../../genindex.html" />
   <link rel="search" title="Search" href="../../../../search.html" />
-  <link rel="next" title="Learner" href="../../../worker/learner/index.html" />
+  <link rel="next" title="Data" href="../../../data/index.html" />
   <link rel="prev" title="framework.middleware.functional.explorer" href="explorer.html" />
     <link href="../../../../_static/css/style.css" rel="stylesheet" type="text/css">
 
@@ -127,9 +127,29 @@
                   <p>Tree Nested PyTorch Tensor Lib</p>
                 </a>
                 <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-sheep" target="_blank">
+                  <span class="dropdown-title">DI-sheep </span>
+                  <p>Deep Reinforcement Learning + 3 Tiles Game</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
                   href="https://github.com/opendilab/awesome-model-based-RL" target="_blank">
                   <span class="dropdown-title">awesome-model-based-RL </span>
                   <p>A curated list of awesome model based RL resources (continually updated)</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/awesome-decision-transformer" target="_blank">
+                  <span class="dropdown-title">awesome-decision-transformer </span>
+                  <p>A curated list of Decision Transformer resources (continually updated)</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/awesome-exploration-rl" target="_blank">
+                  <span class="dropdown-title">awesome-exploration-rl </span>
+                  <p>A curated list of awesome exploration RL resources (continually updated)</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/awesome-multi-modal-reinforcement-learning" target="_blank">
+                  <span class="dropdown-title">awesome-multi-modal-reinforcement-learning </span>
+                  <p>A curated list of Multi-Modal Reinforcement Learning resources (continually updated)</p>
                 </a>
               </div>
           </li>
@@ -190,6 +210,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../../01_quickstart/index.html">Quickstart</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../02_algo/index.html">RL Algorithm Taxonomy</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../03_system/index.html">System Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../04_best_practice/index.html">Best Practice</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="../../../index.html">API Doc</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../06_faq/index.html">FAQ</a></li>
 </ul>
@@ -308,13 +329,13 @@
 <h3>multistep_trainer<a class="headerlink" href="#multistep-trainer" title="Permalink to this headline">¶</a></h3>
 <dl class="py function">
 <dt class="sig sig-object py" id="ding.framework.middleware.functional.trainer.multistep_trainer">
-<span class="sig-prename descclassname"><span class="pre">ding.framework.middleware.functional.trainer.</span></span><span class="sig-name descname"><span class="pre">multistep_trainer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cfg</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">easydict.EasyDict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">policy</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">ding.policy.base_policy.Policy</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Callable</span></span></span><a class="reference internal" href="../../../../_modules/ding/framework/middleware/functional/trainer.html#multistep_trainer"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.framework.middleware.functional.trainer.multistep_trainer" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">ding.framework.middleware.functional.trainer.</span></span><span class="sig-name descname"><span class="pre">multistep_trainer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">policy</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">ding.policy.base_policy.Policy</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log_freq</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Callable</span></span></span><a class="reference internal" href="../../../../_modules/ding/framework/middleware/functional/trainer.html#multistep_trainer"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.framework.middleware.functional.trainer.multistep_trainer" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>The middleware that executes training for a target num of steps.</p>
 </dd>
 <dt>Arguments:</dt><dd><ul class="simple">
-<li><p>cfg (<code class="xref py py-obj docutils literal notranslate"><span class="pre">EasyDict</span></code>): Config.</p></li>
 <li><p>policy (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Policy</span></code>): The policy specialized for multi-step training.</p></li>
+<li><p>int (<code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>): The frequency (iteration) of showing log.</p></li>
 </ul>
 </dd>
 </dl>
@@ -332,7 +353,7 @@
   
   <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
     
-    <a href="../../../worker/learner/index.html" class="btn btn-neutral float-right" title="Learner" accesskey="n"
+    <a href="../../../data/index.html" class="btn btn-neutral float-right" title="Data" accesskey="n"
       rel="next">Next <img src="../../../../_static/images/chevron-right-blue.svg"
         class="next-page"></a>
     
